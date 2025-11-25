@@ -1076,10 +1076,11 @@ runs:
         
         BUILD_START=$(date +%s)
         
+       ./kernel_platform/oplus/build/oplus_build_kernel.sh canoe perf
+        
         # if [ -f ./kernel_platform/build_with_bazel.py ]; then
           # LTO=thin SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 KMI_SYMBOL_LIST_STRICT_MODE=0 ./kernel_platform/oplus/bazel/oplus_modules_variant.sh "$OP_SOC" "$BUILD_TYPE" ""
           # LTO=thin SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 KMI_SYMBOL_LIST_STRICT_MODE=0 ./kernel_platform/build_with_bazel.py -t "$OP_SOC" $BUILD_TYPE "${BAZEL_ARGS[@]}" -o "$(pwd)/out"
-       ./kernel_platform/oplus/build/oplus_build_kernel.sh canoe perf
         # else
           # LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
         # fi
