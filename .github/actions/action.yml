@@ -1019,16 +1019,16 @@ runs:
         # tac ./msm-kernel/scripts/setlocalversion | sed '0,/echo "\$res"/s//res=\$\(echo \$res \| cut -d- -f1-2\)-OP-Wild\;echo "\$res"\;/' | tac > ./msm-kernel/scripts/setlocalversion.tmp && mv ./msm-kernel/scripts/setlocalversion.tmp ./msm-kernel/scripts/setlocalversion
         # tac ./external/dtc/scripts/setlocalversion | sed '0,/echo "\$res"/s//res=\$\(echo \$res \| cut -d- -f1-2\)-OP-Wild\;echo "\$res"\;/' | tac > ./external/dtc/scripts/setlocalversion.tmp && mv ./external/dtc/scripts/setlocalversion.tmp ./external/dtc/scripts/setlocalversion
         # For New setlocalversion Script
-        sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNELVERSION}-${{ inputs.android_version }}-OP-Wild"/' ./common/scripts/setlocalversion
-        # sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNELVERSION}-${{ inputs.android_version }}-OP-Wild"/' ./msm-kernel/scripts/setlocalversion
-        # sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNELVERSION}-${{ inputs.android_version }}-OP-Wild"/' ./external/dtc/scripts/setlocalversion
+        sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNEL_FULL_VER}-OP-Wild"/' ./common/scripts/setlocalversion
+        sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNEL_FULL_VER}-OP-Wild"/' ./msm-kernel/scripts/setlocalversion
+        sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNEL_FULL_VER}-OP-Wild"/' ./external/dtc/scripts/setlocalversion
         chmod +x ./common/scripts/setlocalversion
-        # chmod +x ./msm-kernel/scripts/setlocalversion
-        # chmod +x ./external/dtc/scripts/setlocalversion
+        chmod +x ./msm-kernel/scripts/setlocalversion
+        chmod +x ./external/dtc/scripts/setlocalversion
         sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl || echo "No stamp.bzl!"
         sed -i 's/-dirty//' ./common/scripts/setlocalversion
-        # sed -i 's/-dirty//' ./msm-kernel/scripts/setlocalversion
-        # sed -i 's/-dirty//' ./external/dtc/scripts/setlocalversion
+        sed -i 's/-dirty//' ./msm-kernel/scripts/setlocalversion
+        sed -i 's/-dirty//' ./external/dtc/scripts/setlocalversion
         sed -i 's/-dirty//' ./build/kernel/kleaf/workspace_status_stamp.py || echo "No workspace_status_stamp.py!"
         
         sed -i '/echo "LTO $LTO "/i export LTO=thin' ./oplus/build/oplus_setup.sh
@@ -1049,14 +1049,14 @@ runs:
         # Clear Cache
         sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
         
-        rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+        # rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
         # rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
         
         BUILD_TYPE="gki"
         BAZEL_ARGS=(--jobs=$(nproc --all))
         if [[ "$OP_SOC" == "sun" || "$OP_SOC" == "canoe" ]]; then
           BUILD_TYPE="perf"
-          BAZEL_ARGS+=(-g)
+          # BAZEL_ARGS+=(-g)
         fi
         
         (stdbuf -oL bash -c '
@@ -1076,13 +1076,13 @@ runs:
         
         BUILD_START=$(date +%s)
         
-        if [ -f ./kernel_platform/build_with_bazel.py ]; then
+        # if [ -f ./kernel_platform/build_with_bazel.py ]; then
           # LTO=thin SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 KMI_SYMBOL_LIST_STRICT_MODE=0 ./kernel_platform/oplus/bazel/oplus_modules_variant.sh "$OP_SOC" "$BUILD_TYPE" ""
           # LTO=thin SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 KMI_SYMBOL_LIST_STRICT_MODE=0 ./kernel_platform/build_with_bazel.py -t "$OP_SOC" $BUILD_TYPE "${BAZEL_ARGS[@]}" -o "$(pwd)/out"
-          LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh canoe perf
-        else
-          LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
-        fi
+       ./kernel_platform/oplus/build/oplus_build_kernel.sh canoe perf
+        # else
+          # LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
+        # fi
         
         BUILD_END=$(date +%s)
         BUILD_TIME=$((BUILD_END - BUILD_START))
