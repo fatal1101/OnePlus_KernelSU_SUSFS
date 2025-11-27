@@ -220,6 +220,17 @@ runs:
         echo "✅ Dependencies installed"
         echo "::endgroup::"
 
+    - name: Setup RUST
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: "1.82.0"
+
+      - name: Show Rust version
+        run: rustc -V
+
+      - name: Install bindgen if you ever need it
+        run: cargo install bindgen-cli
+
     - name: Setup Base Environment
       shell: bash
       run: |
@@ -1011,6 +1022,31 @@ runs:
         mkdir -p out
         CUSTOM_LOCALVERSION="-${ANDROID_VER}-OP-Wild"
         echo "CUSTOM_LOCALVERSION=$CUSTOM_LOCALVERSION" >> "$GITHUB_ENV"
+        echo "::endgroup::"
+
+
+    - name: Fix ashmem
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "::group::Fix ashmem"
+        KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG/kernel_platform"
+        cd "$KERNEL_PATH"
+        FILE=common/drivers/staging/android/ashmem.c
+        if [[ -f "$FILE" ]] && ! grep -q 'is_ashmem_file' "$FILE"; then
+          cat >>"$FILE" <<'EOF'
+          bool is_ashmem_file(struct file *file) { return false; }
+          int ashmem_area_name(struct file *file, char *name) { return 0; }
+          long ashmem_area_size(struct file *file) { return 0; }
+          struct file *ashmem_area_vmfile(struct file *file) { return NULL; }
+          EXPORT_SYMBOL_GPL(is_ashmem_file);
+          EXPORT_SYMBOL_GPL(ashmem_area_name);
+          EXPORT_SYMBOL_GPL(ashmem_area_size);
+          EXPORT_SYMBOL_GPL(ashmem_area_vmfile);
+          EOF
+        fi
+        
+        sed -i -E 's/\$\(CONFIG_ANDROID_BINDER_IPC_RUST\)/m/g' common/drivers/android/Makefile
         echo "::endgroup::"
 
     # - name: Run sed and perl Commands
