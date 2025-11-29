@@ -1074,15 +1074,15 @@ runs:
           sed -i '/check_defconfig = select({/,/}/c\        check_defconfig = "disabled"' ./build/kernel/kleaf/common_kernels.bzl
         fi
         
-        sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNEL_FULL_VER}-OP-Wild"/' ./common/scripts/setlocalversion
+        #sed -i 's/echo "${KERNELVERSION}${file_localversion}${config_localversion}${LOCALVERSION}${scm_version}"/echo "${KERNEL_FULL_VER}-OP-Wild"/' ./common/scripts/setlocalversion
         chmod +x ./common/scripts/setlocalversion
         sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl || echo "No stamp.bzl!"
         sed -i 's/-dirty//' ./common/scripts/setlocalversion
         sed -i 's/-dirty//' ./build/kernel/kleaf/workspace_status_stamp.py || echo "No workspace_status_stamp.py!"
         
         # Run perl command to modify UTS_VERSION
-        DATESTR=$(date -u)
-        perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT $DATESTR"}' ./common/scripts/mkcompile_h
+        #DATESTR=$(date -u)
+        #perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT $DATESTR"}' ./common/scripts/mkcompile_h
 
     - name: Build the Kernel
       shell: bash
