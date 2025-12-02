@@ -367,7 +367,7 @@ runs:
         RUSTC_FOUND=false
         for base in "$KP/prebuilts" "$KP/prebuilts-master"; do
           [ -d "$base/clang/host/linux-x86" ] || continue
-          latest=$(ls -d "$base"/clang/host/linux-x86/clang-r*/ 2>/dev/null | sort -V | head -n1 || true)
+          latest=$(ls -d "$base"/clang/host/linux-x86/clang-r*/ 2>/dev/null | sort -V | tail -n1 || true)
           if [ -n "$latest" ] && [ -x "$latest/bin/clang" ]; then
             CLANG_BIN="$latest/bin"
             CLANG_FOUND=true
@@ -1144,195 +1144,195 @@ runs:
         echo "BUILD_END=$BUILD_END" >> "$GITHUB_ENV"
         echo "BUILD_TIME=$BUILD_TIME" >> "$GITHUB_ENV"
 
-    - name: Build Kernel
-      shell: bash
-      env:
-        PYTHONWARNINGS: "ignore:invalid escape sequence"
-      run: |
-        set -euo pipefail
-        echo "::group::Build kernel with ccache optimization"
+    # - name: Build Kernel
+      # shell: bash
+      # env:
+        # PYTHONWARNINGS: "ignore:invalid escape sequence"
+      # run: |
+        # set -euo pipefail
+        # echo "::group::Build kernel with ccache optimization"
         
-        KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG/kernel_platform"
-        COMMON="$KERNEL_PATH/common"
-        cd "$COMMON"
-        : > "$COMMON/.scmversion"
+        # KERNEL_PATH="$GITHUB_WORKSPACE/$CONFIG/kernel_platform"
+        # COMMON="$KERNEL_PATH/common"
+        # cd "$COMMON"
+        # : > "$COMMON/.scmversion"
         
-        export PYTHONWARNINGS="${PYTHONWARNINGS}"
+        # export PYTHONWARNINGS="${PYTHONWARNINGS}"
         
-        echo "Getting last commit timestamp from kernel source..."
-        COMMIT_TIMESTAMP=$(git log -1 --format=%ct 2>/dev/null || echo "$(date +%s)")
-        COMMIT_DATE=$(git log -1 --format=%cd --date=format:'%Y-%m-%d %H:%M:%S' 2>/dev/null || date -u '+%Y-%m-%d %H:%M:%S')
-        COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+        # echo "Getting last commit timestamp from kernel source..."
+        # COMMIT_TIMESTAMP=$(git log -1 --format=%ct 2>/dev/null || echo "$(date +%s)")
+        # COMMIT_DATE=$(git log -1 --format=%cd --date=format:'%Y-%m-%d %H:%M:%S' 2>/dev/null || date -u '+%Y-%m-%d %H:%M:%S')
+        # COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
         
-        KERNEL_BUILD_DATE=$(date -u)
-        export SOURCE_DATE_EPOCH=$COMMIT_TIMESTAMP
-        export KBUILD_BUILD_TIMESTAMP="$KERNEL_BUILD_DATE"
-        export KBUILD_BUILD_USER="${BUILD_USER:-builder}"
-        export KBUILD_BUILD_HOST="${BUILD_HOST:-github-actions}"
-        export KBUILD_BUILD_VERSION=1
+        # KERNEL_BUILD_DATE=$(date -u)
+        # export SOURCE_DATE_EPOCH=$COMMIT_TIMESTAMP
+        # export KBUILD_BUILD_TIMESTAMP="$KERNEL_BUILD_DATE"
+        # export KBUILD_BUILD_USER="${BUILD_USER:-builder}"
+        # export KBUILD_BUILD_HOST="${BUILD_HOST:-github-actions}"
+        # export KBUILD_BUILD_VERSION=1
         
-        echo "📅 Build timestamp: $KBUILD_BUILD_TIMESTAMP (from commit $COMMIT_HASH)"
-        echo "🔢 SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
-        echo "👤 Build user: $KBUILD_BUILD_USER"
-        echo "🖥️  Build host: $KBUILD_BUILD_HOST"
+        # echo "📅 Build timestamp: $KBUILD_BUILD_TIMESTAMP (from commit $COMMIT_HASH)"
+        # echo "🔢 SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
+        # echo "👤 Build user: $KBUILD_BUILD_USER"
+        # echo "🖥️  Build host: $KBUILD_BUILD_HOST"
         
-        WORKSPACE="${GITHUB_WORKSPACE}"
-        MAP="-fdebug-prefix-map=${WORKSPACE}=."
-        MPMAP="-fmacro-prefix-map=${WORKSPACE}=."
-        FPMAP="-ffile-prefix-map=${WORKSPACE}=."
+        # WORKSPACE="${GITHUB_WORKSPACE}"
+        # MAP="-fdebug-prefix-map=${WORKSPACE}=."
+        # MPMAP="-fmacro-prefix-map=${WORKSPACE}=."
+        # FPMAP="-ffile-prefix-map=${WORKSPACE}=."
         
-        export KCFLAGS="${KCFLAGS:-} $MAP $MPMAP $FPMAP -no-canonical-prefixes -fdiagnostics-color=never -Qunused-arguments -Wno-unused-command-line-argument"
-        export KCPPFLAGS="${KCPPFLAGS:-} $MAP $MPMAP $FPMAP"
+        # export KCFLAGS="${KCFLAGS:-} $MAP $MPMAP $FPMAP -no-canonical-prefixes -fdiagnostics-color=never -Qunused-arguments -Wno-unused-command-line-argument"
+        # export KCPPFLAGS="${KCPPFLAGS:-} $MAP $MPMAP $FPMAP"
         
-        export CC="ccache clang"
-        export CXX="ccache clang++"
-        export HOSTCC="ccache clang"
-        export HOSTCXX="ccache clang++"
+        # export CC="ccache clang"
+        # export CXX="ccache clang++"
+        # export HOSTCC="ccache clang"
+        # export HOSTCXX="ccache clang++"
         
-        export LLVM=1 LLVM_IAS=1
-        export ARCH=arm64 SUBARCH=arm64
-        export CROSS_COMPILE=aarch64-linux-android13-
-        export PAHOLE="$KERNEL_PATH/prebuilts/kernel-build-tools/linux-x86/bin/pahole"
-        export LD=ld.lld HOSTLD=ld.lld AR=llvm-ar NM=llvm-nm 
-        export OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
+        # export LLVM=1 LLVM_IAS=1
+        # export ARCH=arm64 SUBARCH=arm64
+        # export CROSS_COMPILE=aarch64-linux-android13-
+        # export PAHOLE="$KERNEL_PATH/prebuilts/kernel-build-tools/linux-x86/bin/pahole"
+        # export LD=ld.lld HOSTLD=ld.lld AR=llvm-ar NM=llvm-nm 
+        # export OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
         
-        BASE_PATH="/usr/lib/ccache:${CLANG_BIN_PATH}:${KERNEL_PATH}/prebuilts/kernel-build-tools/linux-x86/bin/"
+        # BASE_PATH="/usr/lib/ccache:${CLANG_BIN_PATH}:${KERNEL_PATH}/prebuilts/kernel-build-tools/linux-x86/bin/"
         
-        if [ -n "${RUSTC_BIN_PATH:-}" ]; then
-          export PATH="${BASE_PATH}:${RUSTC_BIN_PATH}:${PATH}"
-          export RUSTC="$RUSTC_BIN_PATH/rustc"
-        else
-          export PATH="${BASE_PATH}:${PATH}"
-        fi
-        
-        if [ "${{ inputs.clean }}" = "true" ]; then
-          echo "🧹 Clean build mode - ccache disabled"
-          export CCACHE_DISABLE=1
-        else
-          echo "🚀 ccache-accelerated build"
-        fi
-        
-        OUT=out
-        mkdir -p "$OUT"
-        
-        echo "============================================"
-        echo "🔍 Compiler & ccache Verification"
-        echo "============================================"
-        echo "PATH: ${PATH:0:200}..."
-        echo "which clang: $(which clang)"
-        echo "CC: $CC"
-        echo "CXX: $CXX"
-        echo "CCACHE_BASEDIR: ${CCACHE_BASEDIR:-not set}"
-        echo ""
-        
-        if [ "${{ inputs.clean }}" != "true" ]; then
-          echo "ccache wrapper test:"
-          clang --version 2>&1 | head -n1 || true
-          echo ""
-          echo "ccache configuration:"
-          ccache -p | grep -E "(compression|direct_mode|readonly_direct|depend|sloppiness)" || true
-          echo ""
-          echo "ccache pre-build status:"
-          ccache -s | head -n 20
-        else
-          echo "⚠️ Clean build - ccache bypassed"
-        fi
-        echo "============================================"
-        
-        make O="$OUT" gki_defconfig
-        
-        if [ -n "${CUSTOM_LOCALVERSION:-}" ]; then
-          scripts/config --file "$OUT/.config" --set-str LOCALVERSION "${CUSTOM_LOCALVERSION}"
-          scripts/config --file "$OUT/.config" -d LOCALVERSION_AUTO || true
-          sed -i 's/scm_version="$(scm_version --short)"/scm_version=""/' scripts/setlocalversion
-        fi
-        
-        # if [ "${{ inputs.optimize_level }}" = "O3" ]; then
-          # scripts/config --file "$OUT/.config" -d CC_OPTIMIZE_FOR_PERFORMANCE
-          # scripts/config --file "$OUT/.config" -e CC_OPTIMIZE_FOR_PERFORMANCE_O3
-          # KCFLAGS_EXTRA="-O3"
+        # if [ -n "${RUSTC_BIN_PATH:-}" ]; then
+          # export PATH="${BASE_PATH}:${RUSTC_BIN_PATH}:${PATH}"
+          # export RUSTC="$RUSTC_BIN_PATH/rustc"
         # else
-          # scripts/config --file "$OUT/.config" -e CC_OPTIMIZE_FOR_PERFORMANCE
-          # scripts/config --file "$OUT/.config" -d CC_OPTIMIZE_FOR_PERFORMANCE_O3
-          # KCFLAGS_EXTRA="-O2"
+          # export PATH="${BASE_PATH}:${PATH}"
         # fi
         
-        # scripts/config --file "$OUT/.config" -e LTO_CLANG_THIN
-        # scripts/config --file "$OUT/.config" -e LTO_CLANG
-        make O="$OUT" olddefconfig
+        # if [ "${{ inputs.clean }}" = "true" ]; then
+          # echo "🧹 Clean build mode - ccache disabled"
+          # export CCACHE_DISABLE=1
+        # else
+          # echo "🚀 ccache-accelerated build"
+        # fi
         
-        KCFLAGS="$KCFLAGS -Wno-error -pipe -fno-stack-protector ${KCFLAGS_EXTRA}"
-        KCPPFLAGS="$KCPPFLAGS -DCONFIG_OPTIMIZE_INLINING"
+        # OUT=out
+        # mkdir -p "$OUT"
         
-        echo "============================================"
-        echo "🔧 Build Configuration"
-        echo "============================================"
-        echo "Device: ${OP_MODEL}"
-        echo "Kernel: ${KERNEL_FULL_VER}"
-        echo "Threads: $(nproc --all)"
-        echo "Optimization: ${{ inputs.optimize_level }}"
-        echo "KCFLAGS: ${KCFLAGS:0:150}..."
-        echo "KCPPFLAGS: ${KCPPFLAGS:0:150}..."
-        echo "Timestamp: $KBUILD_BUILD_TIMESTAMP"
-        echo "Workspace: $WORKSPACE"
+        # echo "============================================"
+        # echo "🔍 Compiler & ccache Verification"
+        # echo "============================================"
+        # echo "PATH: ${PATH:0:200}..."
+        # echo "which clang: $(which clang)"
+        # echo "CC: $CC"
+        # echo "CXX: $CXX"
+        # echo "CCACHE_BASEDIR: ${CCACHE_BASEDIR:-not set}"
+        # echo ""
         
-        if [ "${{ inputs.clean }}" != "true" ]; then
-          echo "ccache: ENABLED"
-          echo "  Dir: $CCACHE_DIR"
-          echo "  Base: $CCACHE_BASEDIR"
-          echo "  Max size: $CCACHE_MAXSIZE"
-          echo "  Compression: zstd level 3"
-          echo "  Features: readonly_direct, file_clone, inode_cache, depend"
-        else
-          echo "ccache: DISABLED (clean build)"
-        fi
-        echo "============================================"
+        # if [ "${{ inputs.clean }}" != "true" ]; then
+          # echo "ccache wrapper test:"
+          # clang --version 2>&1 | head -n1 || true
+          # echo ""
+          # echo "ccache configuration:"
+          # ccache -p | grep -E "(compression|direct_mode|readonly_direct|depend|sloppiness)" || true
+          # echo ""
+          # echo "ccache pre-build status:"
+          # ccache -s | head -n 20
+        # else
+          # echo "⚠️ Clean build - ccache bypassed"
+        # fi
+        # echo "============================================"
         
-        if [ "${{ inputs.clean }}" != "true" ]; then
-          if [ ! -d "$CCACHE_DIR" ] || [ -z "$(find "$CCACHE_DIR" -type f 2>/dev/null | head -n1)" ]; then
-            echo "🔥 Priming cache with header preprocessing..."
-            make -C "$COMMON" O="$OUT" headers_install prepare 2>&1 | head -n 20 || true
-            echo ""
-          fi
-        fi
+        # make O="$OUT" gki_defconfig
         
-        BUILD_START=$(date +%s)
-        set -o pipefail
+        # if [ -n "${CUSTOM_LOCALVERSION:-}" ]; then
+          # scripts/config --file "$OUT/.config" --set-str LOCALVERSION "${CUSTOM_LOCALVERSION}"
+          # scripts/config --file "$OUT/.config" -d LOCALVERSION_AUTO || true
+          # sed -i 's/scm_version="$(scm_version --short)"/scm_version=""/' scripts/setlocalversion
+        # fi
         
-        make -j"$(nproc --all)" O="$OUT" KCFLAGS="$KCFLAGS" KCPPFLAGS="$KCPPFLAGS" 2>&1 | tee build.log
+        # # if [ "${{ inputs.optimize_level }}" = "O3" ]; then
+          # # scripts/config --file "$OUT/.config" -d CC_OPTIMIZE_FOR_PERFORMANCE
+          # # scripts/config --file "$OUT/.config" -e CC_OPTIMIZE_FOR_PERFORMANCE_O3
+          # # KCFLAGS_EXTRA="-O3"
+        # # else
+          # # scripts/config --file "$OUT/.config" -e CC_OPTIMIZE_FOR_PERFORMANCE
+          # # scripts/config --file "$OUT/.config" -d CC_OPTIMIZE_FOR_PERFORMANCE_O3
+          # # KCFLAGS_EXTRA="-O2"
+        # # fi
         
-        BUILD_END=$(date +%s)
-        BUILD_TIME=$((BUILD_END - BUILD_START))
+        # # scripts/config --file "$OUT/.config" -e LTO_CLANG_THIN
+        # # scripts/config --file "$OUT/.config" -e LTO_CLANG
+        # make O="$OUT" olddefconfig
         
-        echo "BUILD_START=$BUILD_START" >> "$GITHUB_ENV"
-        echo "BUILD_END=$BUILD_END" >> "$GITHUB_ENV"
-        echo "BUILD_TIME=$BUILD_TIME" >> "$GITHUB_ENV"
+        # KCFLAGS="$KCFLAGS -Wno-error -pipe -fno-stack-protector ${KCFLAGS_EXTRA}"
+        # KCPPFLAGS="$KCPPFLAGS -DCONFIG_OPTIMIZE_INLINING"
         
-        IMG="$OUT/arch/arm64/boot/Image"
-        if [ ! -f "$IMG" ]; then
-          echo "::error::Kernel Image missing"
-          echo "::group::Last 100 lines of build log"
-          tail -n 100 build.log || echo "Build log not available"
-          echo "::endgroup::"
-          exit 1
-        fi
+        # echo "============================================"
+        # echo "🔧 Build Configuration"
+        # echo "============================================"
+        # echo "Device: ${OP_MODEL}"
+        # echo "Kernel: ${KERNEL_FULL_VER}"
+        # echo "Threads: $(nproc --all)"
+        # echo "Optimization: ${{ inputs.optimize_level }}"
+        # echo "KCFLAGS: ${KCFLAGS:0:150}..."
+        # echo "KCPPFLAGS: ${KCPPFLAGS:0:150}..."
+        # echo "Timestamp: $KBUILD_BUILD_TIMESTAMP"
+        # echo "Workspace: $WORKSPACE"
         
-        IMG_SIZE=$(stat -c%s "$IMG")
+        # if [ "${{ inputs.clean }}" != "true" ]; then
+          # echo "ccache: ENABLED"
+          # echo "  Dir: $CCACHE_DIR"
+          # echo "  Base: $CCACHE_BASEDIR"
+          # echo "  Max size: $CCACHE_MAXSIZE"
+          # echo "  Compression: zstd level 3"
+          # echo "  Features: readonly_direct, file_clone, inode_cache, depend"
+        # else
+          # echo "ccache: DISABLED (clean build)"
+        # fi
+        # echo "============================================"
         
-        echo "============================================"
-        echo "✅ Build Completed Successfully"
-        echo "============================================"
-        echo "Duration: $((BUILD_TIME / 60))m $((BUILD_TIME % 60))s"
-        echo "Image: $(numfmt --to=iec-i --suffix=B "$IMG_SIZE")"
+        # if [ "${{ inputs.clean }}" != "true" ]; then
+          # if [ ! -d "$CCACHE_DIR" ] || [ -z "$(find "$CCACHE_DIR" -type f 2>/dev/null | head -n1)" ]; then
+            # echo "🔥 Priming cache with header preprocessing..."
+            # make -C "$COMMON" O="$OUT" headers_install prepare 2>&1 | head -n 20 || true
+            # echo ""
+          # fi
+        # fi
         
-        if [ "${{ inputs.clean }}" != "true" ]; then
-          echo ""
-          echo "📊 ccache Post-Build Statistics"
-          echo "============================================"
-          ccache -s
-        fi
-        echo "============================================"
-        echo "::endgroup::"
+        # BUILD_START=$(date +%s)
+        # set -o pipefail
+        
+        # make -j"$(nproc --all)" O="$OUT" KCFLAGS="$KCFLAGS" KCPPFLAGS="$KCPPFLAGS" 2>&1 | tee build.log
+        
+        # BUILD_END=$(date +%s)
+        # BUILD_TIME=$((BUILD_END - BUILD_START))
+        
+        # echo "BUILD_START=$BUILD_START" >> "$GITHUB_ENV"
+        # echo "BUILD_END=$BUILD_END" >> "$GITHUB_ENV"
+        # echo "BUILD_TIME=$BUILD_TIME" >> "$GITHUB_ENV"
+        
+        # IMG="$OUT/arch/arm64/boot/Image"
+        # if [ ! -f "$IMG" ]; then
+          # echo "::error::Kernel Image missing"
+          # echo "::group::Last 100 lines of build log"
+          # tail -n 100 build.log || echo "Build log not available"
+          # echo "::endgroup::"
+          # exit 1
+        # fi
+        
+        # IMG_SIZE=$(stat -c%s "$IMG")
+        
+        # echo "============================================"
+        # echo "✅ Build Completed Successfully"
+        # echo "============================================"
+        # echo "Duration: $((BUILD_TIME / 60))m $((BUILD_TIME % 60))s"
+        # echo "Image: $(numfmt --to=iec-i --suffix=B "$IMG_SIZE")"
+        
+        # if [ "${{ inputs.clean }}" != "true" ]; then
+          # echo ""
+          # echo "📊 ccache Post-Build Statistics"
+          # echo "============================================"
+          # ccache -s
+        # fi
+        # echo "============================================"
+        # echo "::endgroup::"
 
     - name: 📊 ccache Post-Build Statistics
       id: ccache_stats
