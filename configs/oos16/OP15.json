@@ -8,8 +8,8 @@
   "os_version": "OOS16",
   "hmbird": false,
   "susfs": false,
-  "bbg": false,
-  "bbr": false,
-  "ttl": false,
-  "ip_set": false
+  "bbg": true,
+  "bbr": true,
+  "ttl": true,
+  "ip_set": true
 }
